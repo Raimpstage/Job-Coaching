@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quick Session Tracker • Mobile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .session-card { transition: all 0.2s ease; }
+        .large-input { font-size: 17px; padding: 14px 16px; }
+        .touch-target { min-height: 48px; }
+    </style>
+</head>
+<body class="bg-slate-100">
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl">
+        
+        <!-- Header -->
+        <div class="bg-teal-700 text-white px-5 py-4 sticky top-0 z-50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-xl font-semibold">Quick Session Tracker</h1>
+                    <p class="text-teal-200 text-sm">Mobile • iPhone Optimized</p>
+                </div>
+                <i class="fa-solid fa-mobile-screen-button text-2xl text-teal-300"></i>
+            </div>
+        </div>
+
+        <div class="p-5">
+            
+            <!-- Student Info -->
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-teal-700 mb-1.5 tracking-wider">STUDENT NAME</label>
+                <input id="student-name" type="text" 
+                       class="large-input w-full border border-slate-300 rounded-2xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                       placeholder="Enter student name">
+            </div>
+
+            <!-- Add New Session -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-5 mb-6 shadow-sm">
+                <h2 class="font-semibold text-lg text-teal-900 mb-4 flex items-center gap-x-2">
+                    <i class="fa-solid fa-plus-circle text-teal-600"></i>
+                    <span>Add New Session</span>
+                </h2>
+
+                <div class="space-y-4">
+                    <!-- Date + Duration -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5">DATE</label>
+                            <input id="session-date" type="date" value="" 
+                                   class="large-input w-full border border-slate-300 rounded-2xl">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5">DURATION (min)</label>
+                            <input id="duration" type="number" placeholder="45" 
+                                   class="large-input w-full border border-slate-300 rounded-2xl">
+                        </div>
+                    </div>
+
+                    <!-- Tasks / Steps Focused On -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">TASKS / STEPS FOCUSED ON</label>
+                        <input id="tasks-focused" type="text" 
+                               class="large-input w-full border border-slate-300 rounded-2xl"
+                               placeholder="e.g. Greeting visitors, helping find books">
+                    </div>
+
+                    <!-- Independence Level -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">% INDEPENDENT</label>
+                        <div class="flex gap-2 items-center">
+                            <input id="independence" type="range" min="0" max="100" step="5" value="70"
+                                   class="flex-1 accent-teal-600" oninput="updateIndependenceLabel()">
+                            <div class="w-20 text-center bg-slate-100 rounded-2xl py-1">
+                                <span id="independence-value" class="text-2xl font-semibold text-teal-700">70</span>
+                                <span class="text-xs text-slate-500">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prompts Used -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">PROMPTS USED</label>
+                        <div class="flex flex-wrap gap-2">
+                            <div onclick="togglePrompt(this, 'I')" class="prompt-pill px-3.5 py-2 bg-white border border-slate-300 rounded-2xl text-sm cursor-pointer active:bg-teal-50">None (I)</div>
+                            <div onclick="togglePrompt(this, 'V')" class="prompt-pill px-3.5 py-2 bg-white border border-slate-300 rounded-2xl text-sm cursor-pointer active:bg-teal-50">Verbal</div>
+                            <div onclick="togglePrompt(this, 'M')" class="prompt-pill px-3.5 py-2 bg-white border border-slate-300 rounded-2xl text-sm cursor-pointer active:bg-teal-50">Model</div>
+                            <div onclick="togglePrompt(this, 'G')" class="prompt-pill px-3.5 py-2 bg-white border border-slate-300 rounded-2xl text-sm cursor-pointer active:bg-teal-50">Gestural</div>
+                            <div onclick="togglePrompt(this, 'P')" class="prompt-pill px-3.5 py-2 bg-white border border-slate-300 rounded-2xl text-sm cursor-pointer active:bg-teal-50">Physical</div>
+                        </div>
+                        <input type="hidden" id="prompts-used" value="">
+                    </div>
+
+                    <!-- Key Observations -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">KEY OBSERVATIONS / QUALITY / NEXT STEPS</label>
+                        <textarea id="session-notes" rows="3" 
+                                  class="large-input w-full border border-slate-300 rounded-2xl resize-y min-h-[90px]"
+                                  placeholder="What went well? Any breakthroughs? What to focus on next time?"></textarea>
+                    </div>
+
+                    <button onclick="addSession()" 
+                            class="w-full bg-teal-700 hover:bg-teal-800 active:bg-teal-900 transition-colors text-white font-semibold py-4 rounded-3xl text-lg flex items-center justify-center gap-x-2 touch-target">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>ADD SESSION</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sessions List -->
+            <div>
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h2 class="font-semibold text-lg text-teal-900">Sessions Logged</h2>
+                    <span id="session-count" class="text-xs font-medium bg-teal-100 text-teal-700 px-3 py-1 rounded-full">0 sessions</span>
+                </div>
+
+                <div id="sessions-list" class="space-y-3">
+                    <!-- Sessions will be added here dynamically -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Action Bar -->
+        <div class="sticky bottom-0 bg-white border-t border-slate-200 p-4 shadow-inner">
+            <div class="flex gap-3">
+                <button onclick="exportSessions()" 
+                        class="flex-1 bg-white border border-teal-700 text-teal-700 font-semibold py-3.5 rounded-3xl flex items-center justify-center gap-x-2 active:bg-teal-50">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Export JSON</span>
+                </button>
+                
+                <button onclick="clearAllSessions()" 
+                        class="px-6 bg-red-50 text-red-600 font-semibold py-3.5 rounded-3xl flex items-center justify-center active:bg-red-100">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
+            <p class="text-center text-[10px] text-slate-400 mt-3">Export this file and import into the main Mentor Worksheet</p>
+        </div>
+    </div>
+
+    <script>
+        let sessions = [];
+        let selectedPrompts = new Set();
+
+        function updateIndependenceLabel() {
+            const val = document.getElementById('independence').value;
+            document.getElementById('independence-value').textContent = val;
+        }
+
+        function togglePrompt(element, type) {
+            if (selectedPrompts.has(type)) {
+                selectedPrompts.delete(type);
+                element.classList.remove('bg-teal-600', 'text-white', 'border-teal-600');
+                element.classList.add('bg-white', 'border-slate-300');
+            } else {
+                selectedPrompts.add(type);
+                element.classList.add('bg-teal-600', 'text-white', 'border-teal-600');
+                element.classList.remove('bg-white', 'border-slate-300');
+            }
+            
+            // Update hidden input
+            document.getElementById('prompts-used').value = Array.from(selectedPrompts).join(', ');
+        }
+
+        function addSession() {
+            const date = document.getElementById('session-date').value;
+            const duration = document.getElementById('duration').value;
+            const tasks = document.getElementById('tasks-focused').value.trim();
+            const independence = document.getElementById('independence').value;
+            const prompts = document.getElementById('prompts-used').value;
+            const notes = document.getElementById('session-notes').value.trim();
+            const studentName = document.getElementById('student-name').value.trim();
+
+            if (!date) {
+                alert("Please select a date for the session.");
+                return;
+            }
+
+            const session = {
+                id: Date.now(),
+                date: date,
+                duration: duration || "",
+                tasks: tasks || "",
+                independence: parseInt(independence),
+                prompts: prompts || "None",
+                notes: notes || "",
+                studentName: studentName || "Unknown Student",
+                timestamp: new Date().toISOString()
+            };
+
+            sessions.unshift(session);
+            renderSessions();
+            saveToLocalStorage();
+
+            // Clear form
+            document.getElementById('duration').value = '';
+            document.getElementById('tasks-focused').value = '';
+            document.getElementById('session-notes').value = '';
+            selectedPrompts.clear();
+            document.querySelectorAll('.prompt-pill').forEach(el => {
+                el.classList.remove('bg-teal-600', 'text-white', 'border-teal-600');
+                el.classList.add('bg-white', 'border-slate-300');
+            });
+            document.getElementById('prompts-used').value = '';
+            
+            // Reset independence
+            document.getElementById('independence').value = 70;
+            document.getElementById('independence-value').textContent = '70';
+        }
+
+        function renderSessions() {
+            const container = document.getElementById('sessions-list');
+            container.innerHTML = '';
+
+            if (sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fa-solid fa-clipboard-list text-4xl mb-3"></i>
+                        <p class="text-sm">No sessions logged yet</p>
+                    </div>
+                `;
+                document.getElementById('session-count').textContent = '0 sessions';
+                return;
+            }
+
+            sessions.forEach((session, index) => {
+                const div = document.createElement('div');
+                div.className = `session-card bg-white border border-slate-200 rounded-3xl p-4 shadow-sm`;
+                
+                const dateFormatted = new Date(session.date).toLocaleDateString('en-US', { 
+                    weekday: 'short', month: 'short', day: 'numeric' 
+                });
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="font-semibold text-teal-900">${dateFormatted}</div>
+                            <div class="text-xs text-slate-500">${session.studentName}</div>
+                        </div>
+                        <div class="flex items-center gap-x-2">
+                            <div class="px-3 py-1 bg-teal-100 text-teal-700 text-sm font-bold rounded-2xl">
+                                ${session.independence}%
+                            </div>
+                            <button onclick="deleteSession(${session.id})" 
+                                    class="text-red-400 hover:text-red-600 p-1">
+                                <i class="fa-solid fa-times text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-x-4 text-sm mb-2">
+                        ${session.duration ? `<div><span class="text-slate-500">Duration:</span> <span class="font-medium">${session.duration} min</span></div>` : ''}
+                        ${session.tasks ? `<div class="flex-1"><span class="text-slate-500">Focus:</span> <span class="font-medium">${session.tasks}</span></div>` : ''}
+                    </div>
+                    
+                    <div class="text-sm mb-2">
+                        <span class="font-medium text-slate-600">Prompts:</span> 
+                        <span class="text-slate-800">${session.prompts}</span>
+                    </div>
+                    
+                    ${session.notes ? `
+                    <div class="text-sm bg-slate-50 rounded-2xl p-3 text-slate-700">
+                        ${session.notes}
+                    </div>` : ''}
+                `;
+                container.appendChild(div);
+            });
+
+            document.getElementById('session-count').textContent = `${sessions.length} session${sessions.length > 1 ? 's' : ''}`;
+        }
+
+        function deleteSession(id) {
+            if (!confirm('Delete this session?')) return;
+            sessions = sessions.filter(s => s.id !== id);
+            renderSessions();
+            saveToLocalStorage();
+        }
+
+        function exportSessions() {
+            if (sessions.length === 0) {
+                alert("No sessions to export yet.");
+                return;
+            }
+
+            const exportData = {
+                exportedAt: new Date().toISOString(),
+                studentName: document.getElementById('student-name').value.trim(),
+                sessions: sessions
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `Sessions_${document.getElementById('student-name').value.trim().replace(/\s+/g, '_') || 'Student'}_${new Date().toISOString().split('T')[0]}.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function clearAllSessions() {
+            if (!confirm('Delete ALL sessions? This cannot be undone.')) return;
+            sessions = [];
+            renderSessions();
+            localStorage.removeItem('mobileSessionTracker');
+        }
+
+        function saveToLocalStorage() {
+            const data = {
+                studentName: document.getElementById('student-name').value,
+                sessions: sessions
+            };
+            localStorage.setItem('mobileSessionTracker', JSON.stringify(data));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('mobileSessionTracker');
+            if (!saved) return;
+
+            try {
+                const data = JSON.parse(saved);
+                if (data.studentName) {
+                    document.getElementById('student-name').value = data.studentName;
+                }
+                if (data.sessions && Array.isArray(data.sessions)) {
+                    sessions = data.sessions;
+                    renderSessions();
+                }
+            } catch (e) {
+                console.error("Failed to load saved sessions", e);
+            }
+        }
+
+        // Set today's date by default
+        function setDefaultDate() {
+            const dateInput = document.getElementById('session-date');
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // Initialize
+        function init() {
+            setDefaultDate();
+            updateIndependenceLabel();
+            loadFromLocalStorage();
+            
+            // Auto-save student name
+            document.getElementById('student-name').addEventListener('blur', saveToLocalStorage);
+            
+            // Keyboard support for notes
+            document.getElementById('session-notes').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    e.preventDefault();
+                    addSession();
+                }
+            });
+            
+            console.log('%c[Mobile Session Tracker] Ready for iPhone use.', 'color:#14b8a6');
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
